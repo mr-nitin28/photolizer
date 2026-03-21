@@ -104,14 +104,14 @@ export default function PreviewPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white dark:bg-neutral-950 pt-24 sm:pt-28 pb-20 px-4 sm:px-6 relative overflow-hidden">
+    <main className="min-h-screen bg-white dark:bg-neutral-950 pt-20 sm:pt-24 md:pt-28 pb-12 sm:pb-20 px-4 sm:px-6 relative overflow-hidden">
       {/* Background subtle glow */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-blue-100/25 dark:bg-blue-900/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-20 right-1/4 w-[400px] h-[400px] bg-indigo-100/20 dark:bg-indigo-900/10 rounded-full blur-[100px]" />
+        <div className="absolute top-20 left-1/4 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-blue-100/25 dark:bg-blue-900/10 rounded-full blur-[80px] sm:blur-[120px]" />
+        <div className="absolute bottom-20 right-1/4 w-[250px] sm:w-[400px] h-[250px] sm:h-[400px] bg-indigo-100/20 dark:bg-indigo-900/10 rounded-full blur-[60px] sm:blur-[100px]" />
       </div>
 
-      <div className="max-w-5xl mx-auto space-y-8">
+      <div className="max-w-5xl mx-auto space-y-5 sm:space-y-8">
         {/* Header */}
         <div>
           <motion.div
@@ -122,7 +122,7 @@ export default function PreviewPage() {
             <Link href="/upload">
               <Button
                 variant="ghost"
-                className="mb-5 h-10 px-4 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors"
+                className="mb-3 sm:mb-5 h-9 sm:h-10 px-3 sm:px-4 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors text-sm"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" /> Back to Upload
               </Button>
@@ -135,13 +135,13 @@ export default function PreviewPage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="space-y-3 text-center md:text-left"
           >
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
               Your Photo is{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
                 Ready
               </span>
             </h1>
-            <p className="text-lg text-neutral-500 dark:text-neutral-400 font-medium max-w-2xl leading-relaxed">
+            <p className="text-sm sm:text-lg text-neutral-500 dark:text-neutral-400 font-medium max-w-2xl leading-relaxed">
               Background removed in HD with zero quality loss. Download for digital use or configure a passport print sheet.
             </p>
           </motion.div>
@@ -152,14 +152,14 @@ export default function PreviewPage() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 rounded-[2rem] p-6 sm:p-10 shadow-sm flex flex-col md:flex-row gap-10 lg:gap-16 items-center"
+          className="bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 rounded-2xl sm:rounded-[2rem] p-4 sm:p-6 md:p-10 shadow-sm flex flex-col md:flex-row gap-6 sm:gap-10 lg:gap-16 items-center"
         >
           {/* Left: Image showcase */}
           <div className="flex-1 flex justify-center w-full max-w-sm relative group">
             {/* Soft glow behind image */}
             <div className="absolute -inset-4 bg-gradient-to-br from-blue-400/15 to-indigo-400/15 dark:from-blue-600/10 dark:to-indigo-600/10 blur-2xl rounded-[2rem] -z-10 transition-opacity group-hover:opacity-100 opacity-70" />
 
-            <div className="relative w-full min-h-[360px] max-h-[480px] aspect-auto flex items-center justify-center rounded-2xl overflow-hidden p-4">
+            <div className="relative w-full min-h-[240px] sm:min-h-[360px] max-h-[400px] sm:max-h-[480px] aspect-auto flex items-center justify-center rounded-xl sm:rounded-2xl overflow-hidden p-2 sm:p-4">
               {/* Transparency checkerboard */}
               <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0iI2ZmZiI+PC9yZWN0Pgo8cmVjdCB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiNmMGYwZjAiPjwvcmVjdD4KPHJlY3QgeD0iMTAiIHk9IjEwIiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiNmMGYwZjAiPjwvcmVjdD4KPC9zdmc+')] opacity-15 dark:opacity-8 rounded-2xl -z-10 bg-repeat bg-center" />
 
@@ -174,7 +174,7 @@ export default function PreviewPage() {
           </div>
 
           {/* Right: Actions */}
-          <div className="flex-1 space-y-7 w-full max-w-md">
+          <div className="flex-1 space-y-5 sm:space-y-7 w-full max-w-md">
             {/* Error banner */}
             <AnimatePresence>
               {error && (

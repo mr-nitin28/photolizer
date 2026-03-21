@@ -100,7 +100,7 @@ export default function UploadBox() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.3 }}
-              className={`relative rounded-[2rem] p-14 sm:p-16 text-center cursor-pointer transition-all duration-300 ease-in-out border-2 border-dashed ${
+              className={`relative rounded-2xl sm:rounded-[2rem] p-8 sm:p-14 md:p-16 text-center cursor-pointer transition-all duration-300 ease-in-out border-2 border-dashed ${
                 isDragOver
                   ? "border-blue-500 bg-blue-50/60 dark:bg-blue-950/20 shadow-[inset_0_2px_20px_rgba(59,130,246,0.08)] scale-[1.01]"
                   : "border-neutral-200 dark:border-neutral-800 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-900/80"
@@ -125,16 +125,16 @@ export default function UploadBox() {
                 }}
               />
 
-              <div className="flex flex-col items-center justify-center space-y-5">
+              <div className="flex flex-col items-center justify-center space-y-4 sm:space-y-5">
                 <div
-                  className={`p-5 rounded-2xl transition-all duration-300 ${
+                  className={`p-4 sm:p-5 rounded-2xl transition-all duration-300 ${
                     isDragOver
                       ? "bg-blue-100 dark:bg-blue-900/40 scale-110"
                       : "bg-neutral-100 dark:bg-neutral-800"
                   }`}
                 >
                   <Upload
-                    className={`w-10 h-10 transition-colors duration-300 ${
+                    className={`w-8 h-8 sm:w-10 sm:h-10 transition-colors duration-300 ${
                       isDragOver
                         ? "text-blue-600 dark:text-blue-400"
                         : "text-neutral-400 dark:text-neutral-500"
@@ -143,7 +143,7 @@ export default function UploadBox() {
                 </div>
 
                 <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-neutral-900 dark:text-white">
+                  <h3 className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-white">
                     {isDragOver ? "Drop to upload" : "Click or drag your photo here"}
                   </h3>
                   <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
@@ -160,12 +160,12 @@ export default function UploadBox() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.4 }}
-              className="relative rounded-[2rem] p-10 sm:p-14 bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 shadow-lg overflow-hidden"
+              className="relative rounded-2xl sm:rounded-[2rem] p-6 sm:p-10 md:p-14 bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 shadow-lg overflow-hidden"
             >
               {/* Animated gradient background glow */}
               <div className="absolute inset-0 -z-10">
                 <motion.div
-                  className="absolute top-1/2 left-1/2 w-[300px] h-[300px] rounded-full bg-blue-200/40 dark:bg-blue-800/20 blur-[80px]"
+                  className="absolute top-1/2 left-1/2 w-[200px] sm:w-[300px] h-[200px] sm:h-[300px] rounded-full bg-blue-200/40 dark:bg-blue-800/20 blur-[60px] sm:blur-[80px]"
                   animate={{
                     x: ["-50%", "-30%", "-50%", "-70%", "-50%"],
                     y: ["-50%", "-30%", "-50%", "-70%", "-50%"],
@@ -174,7 +174,7 @@ export default function UploadBox() {
                   transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
                 />
                 <motion.div
-                  className="absolute top-1/2 left-1/2 w-[250px] h-[250px] rounded-full bg-indigo-200/30 dark:bg-indigo-800/15 blur-[70px]"
+                  className="absolute top-1/2 left-1/2 w-[160px] sm:w-[250px] h-[160px] sm:h-[250px] rounded-full bg-indigo-200/30 dark:bg-indigo-800/15 blur-[50px] sm:blur-[70px]"
                   animate={{
                     x: ["-50%", "-70%", "-50%", "-30%", "-50%"],
                     y: ["-50%", "-70%", "-50%", "-30%", "-50%"],
@@ -184,7 +184,7 @@ export default function UploadBox() {
                 />
               </div>
 
-              <div className="flex flex-col items-center space-y-8">
+              <div className="flex flex-col items-center space-y-6 sm:space-y-8">
                 {/* Photo thumbnail with pulsing ring */}
                 <div className="relative">
                   {/* Outer spinning ring */}

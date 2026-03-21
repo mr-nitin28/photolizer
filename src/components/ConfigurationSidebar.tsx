@@ -61,7 +61,7 @@ function SliderControl({
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(parseInt(e.target.value))}
-        className="w-full h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full appearance-none cursor-pointer accent-neutral-900 dark:accent-white disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full appearance-none cursor-pointer accent-neutral-900 dark:accent-white disabled:opacity-40 disabled:cursor-not-allowed touch-action-none"
       />
       <div className="flex justify-between text-[10px] font-medium text-neutral-400 dark:text-neutral-500">
         <span>{min}{unit}</span>

@@ -176,8 +176,8 @@ export default function PrintSheetPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white dark:bg-neutral-950 pt-24 sm:pt-28 pb-20 px-4 sm:px-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <main className="min-h-screen bg-white dark:bg-neutral-950 pt-20 sm:pt-24 md:pt-28 pb-12 sm:pb-20 px-3 sm:px-4 md:px-6">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
         <div>
           <motion.div
@@ -188,7 +188,7 @@ export default function PrintSheetPage() {
             <Link href="/preview">
               <Button
                 variant="ghost"
-                className="mb-4 h-10 px-4 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors"
+                className="mb-2 sm:mb-4 h-9 sm:h-10 px-3 sm:px-4 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors text-sm"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" /> Back to Preview
               </Button>
@@ -201,13 +201,13 @@ export default function PrintSheetPage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="space-y-2"
           >
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
               Print Sheet{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
                 Configuration
               </span>
             </h1>
-            <p className="text-base text-neutral-500 dark:text-neutral-400 font-medium max-w-xl">
+            <p className="text-sm sm:text-base text-neutral-500 dark:text-neutral-400 font-medium max-w-xl">
               Fine-tune your layout and download a print-ready A4 sheet.
             </p>
           </motion.div>
@@ -233,128 +233,138 @@ export default function PrintSheetPage() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6"
+          className="grid grid-cols-1 lg:grid-cols-[280px_1fr] xl:grid-cols-[320px_1fr] gap-4 sm:gap-6"
         >
-          {/* ── Left Panel: single consolidated card ── */}
-          <div className="bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-6 h-fit lg:sticky lg:top-24">
-            {/* Configuration controls */}
-            <ConfigurationSidebar
-              quantity={quantity}
-              setQuantity={setQuantity}
-              photoWidthMm={photoWidthMm}
-              setPhotoWidthMm={setPhotoWidthMm}
-              gapMm={gapMm}
-              setGapMm={setGapMm}
-              marginMm={marginMm}
-              setMarginMm={setMarginMm}
-              disabled={isGenerating}
-              maxFit={layoutInfo.maxFit}
-              photoHeightMm={photoHeightMm}
-            />
+          {/* ── Left Panel: Sticky scrollable configuration controls ── */}
+          <div className="lg:sticky lg:top-20 h-fit">
+            <div className="bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 rounded-xl sm:rounded-2xl shadow-sm overflow-hidden">
+              {/* Scrollable controls area */}
+              <div className="max-h-[35vh] sm:max-h-[45vh] lg:max-h-[calc(100vh-120px)] overflow-y-auto overscroll-contain p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-6 scrollbar-thin">
+                <ConfigurationSidebar
+                  quantity={quantity}
+                  setQuantity={setQuantity}
+                  photoWidthMm={photoWidthMm}
+                  setPhotoWidthMm={setPhotoWidthMm}
+                  gapMm={gapMm}
+                  setGapMm={setGapMm}
+                  marginMm={marginMm}
+                  setMarginMm={setMarginMm}
+                  disabled={isGenerating}
+                  maxFit={layoutInfo.maxFit}
+                  photoHeightMm={photoHeightMm}
+                />
 
-            <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
+                <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
 
-            {/* Sheet info stats */}
-            <div className="space-y-3">
-              <p className="text-xs font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">
-                Sheet Info
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="bg-neutral-50 dark:bg-neutral-800 rounded-xl p-3 text-center">
-                  <p className="text-lg font-extrabold text-neutral-900 dark:text-white tabular-nums">
-                    {layoutInfo.actualCount}
-                  </p>
-                  <p className="text-[10px] text-neutral-500 font-medium mt-0.5">
-                    Placed
-                  </p>
-                </div>
-                <div className="bg-neutral-50 dark:bg-neutral-800 rounded-xl p-3 text-center">
-                  <p className="text-lg font-extrabold text-neutral-900 dark:text-white tabular-nums">
-                    {layoutInfo.maxFit}
-                  </p>
-                  <p className="text-[10px] text-neutral-500 font-medium mt-0.5">
-                    Max Fit
-                  </p>
-                </div>
-                <div className="bg-neutral-50 dark:bg-neutral-800 rounded-xl p-3 text-center">
-                  <p className="text-lg font-extrabold text-neutral-900 dark:text-white tabular-nums">
-                    {layoutInfo.cols}×{layoutInfo.rows}
-                  </p>
-                  <p className="text-[10px] text-neutral-500 font-medium mt-0.5">
-                    Grid
-                  </p>
-                </div>
+                {/* Reset */}
+                <Button
+                  variant="outline"
+                  className="w-full h-9 rounded-lg text-sm font-medium border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+                  onClick={handleReset}
+                  disabled={isGenerating}
+                >
+                  <RotateCcw className="w-3.5 h-3.5 mr-2" />
+                  Reset Defaults
+                </Button>
               </div>
-            </div>
-
-            {/* Reset */}
-            <Button
-              variant="outline"
-              className="w-full h-9 rounded-lg text-sm font-medium border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-              onClick={handleReset}
-              disabled={isGenerating}
-            >
-              <RotateCcw className="w-3.5 h-3.5 mr-2" />
-              Reset Defaults
-            </Button>
-
-            <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
-
-            {/* Export buttons */}
-            <div className="space-y-3 relative">
-              {/* Generating overlay */}
-              <AnimatePresence>
-                {isGenerating && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 z-10 bg-white/70 dark:bg-neutral-900/70 backdrop-blur-sm rounded-xl flex items-center justify-center"
-                  >
-                    <Loader2 className="w-6 h-6 text-neutral-900 dark:text-white animate-spin" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <Button
-                className="w-full h-11 rounded-xl text-sm font-semibold shadow-sm bg-neutral-900 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 transition-all hover:-translate-y-0.5"
-                onClick={handleExportPDF}
-                disabled={exportDisabled}
-              >
-                {downloading === "pdf" ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <FileText className="w-4 h-4 mr-2" />
-                )}
-                Download PDF
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full h-11 rounded-xl text-sm font-semibold border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-900 dark:text-white transition-all hover:-translate-y-0.5"
-                onClick={handleExportPNG}
-                disabled={exportDisabled}
-              >
-                {downloading === "png" ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <FileImage className="w-4 h-4 mr-2" />
-                )}
-                Download PNG
-              </Button>
             </div>
           </div>
 
-          {/* ── Right: Preview ── */}
-          <div className="bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 rounded-2xl p-3 sm:p-4 shadow-sm flex min-h-[70vh]">
-            <PreviewCanvas
-              imageBase64={imageBase64}
-              quantity={quantity}
-              photoWidthMm={photoWidthMm}
-              photoHeightMm={photoHeightMm}
-              gapMm={gapMm}
-              marginMm={marginMm}
-              onLayoutInfoChange={setLayoutInfo}
-            />
+          {/* ── Right Column: Preview Canvas + Sheet Info + Exports ── */}
+          <div className="space-y-4 sm:space-y-6">
+            {/* Preview canvas */}
+            <div className="bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 shadow-sm flex min-h-[50vh] sm:min-h-[60vh] lg:min-h-[70vh]">
+              <PreviewCanvas
+                imageBase64={imageBase64}
+                quantity={quantity}
+                photoWidthMm={photoWidthMm}
+                photoHeightMm={photoHeightMm}
+                gapMm={gapMm}
+                marginMm={marginMm}
+                onLayoutInfoChange={setLayoutInfo}
+              />
+            </div>
+
+            {/* Sheet Info + Export Actions — below canvas for better visibility */}
+            <div className="bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6">
+                {/* Sheet info stats */}
+                <div className="flex-1 space-y-3">
+                  <p className="text-xs font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">
+                    Sheet Info
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-neutral-50 dark:bg-neutral-800 rounded-xl p-2.5 sm:p-3 text-center">
+                      <p className="text-lg font-extrabold text-neutral-900 dark:text-white tabular-nums">
+                        {layoutInfo.actualCount}
+                      </p>
+                      <p className="text-[10px] text-neutral-500 font-medium mt-0.5">
+                        Placed
+                      </p>
+                    </div>
+                    <div className="bg-neutral-50 dark:bg-neutral-800 rounded-xl p-2.5 sm:p-3 text-center">
+                      <p className="text-lg font-extrabold text-neutral-900 dark:text-white tabular-nums">
+                        {layoutInfo.maxFit}
+                      </p>
+                      <p className="text-[10px] text-neutral-500 font-medium mt-0.5">
+                        Max Fit
+                      </p>
+                    </div>
+                    <div className="bg-neutral-50 dark:bg-neutral-800 rounded-xl p-2.5 sm:p-3 text-center">
+                      <p className="text-lg font-extrabold text-neutral-900 dark:text-white tabular-nums">
+                        {layoutInfo.cols}×{layoutInfo.rows}
+                      </p>
+                      <p className="text-[10px] text-neutral-500 font-medium mt-0.5">
+                        Grid
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Export buttons */}
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:shrink-0 relative">
+                  {/* Generating overlay */}
+                  <AnimatePresence>
+                    {isGenerating && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 z-10 bg-white/70 dark:bg-neutral-900/70 backdrop-blur-sm rounded-xl flex items-center justify-center"
+                      >
+                        <Loader2 className="w-5 h-5 text-neutral-900 dark:text-white animate-spin" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <Button
+                    className="h-11 px-6 rounded-xl text-sm font-semibold shadow-sm bg-neutral-900 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 transition-all hover:-translate-y-0.5"
+                    onClick={handleExportPDF}
+                    disabled={exportDisabled}
+                  >
+                    {downloading === "pdf" ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <FileText className="w-4 h-4 mr-2" />
+                    )}
+                    Download PDF
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-11 px-6 rounded-xl text-sm font-semibold border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-900 dark:text-white transition-all hover:-translate-y-0.5"
+                    onClick={handleExportPNG}
+                    disabled={exportDisabled}
+                  >
+                    {downloading === "png" ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <FileImage className="w-4 h-4 mr-2" />
+                    )}
+                    Download PNG
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         </motion.div>
       </div>

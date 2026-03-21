@@ -92,15 +92,15 @@ export default function Home() {
   return (
     <main className="flex flex-col">
       {/* ── Hero Section ─────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+      <section className="relative min-h-[85vh] sm:min-h-screen flex items-center justify-center overflow-hidden pt-20 sm:pt-16">
         {/* Background gradient mesh */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-blue-200/30 dark:bg-blue-900/20 rounded-full blur-[120px]" />
-          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-indigo-200/30 dark:bg-indigo-900/20 rounded-full blur-[120px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-200/20 dark:bg-purple-900/10 rounded-full blur-[100px]" />
+          <div className="absolute top-0 left-1/4 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-blue-200/30 dark:bg-blue-900/20 rounded-full blur-[80px] sm:blur-[120px]" />
+          <div className="absolute bottom-0 right-1/4 w-[250px] sm:w-[500px] h-[250px] sm:h-[500px] bg-indigo-200/30 dark:bg-indigo-900/20 rounded-full blur-[80px] sm:blur-[120px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] sm:w-[400px] h-[200px] sm:h-[400px] bg-purple-200/20 dark:bg-purple-900/10 rounded-full blur-[60px] sm:blur-[100px]" />
         </div>
 
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-5 sm:space-y-8">
           {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -118,7 +118,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-neutral-900 dark:text-white leading-[1.05]"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-extrabold tracking-tight text-neutral-900 dark:text-white leading-[1.1] sm:leading-[1.05]"
           >
             Perfect Photos,{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
@@ -131,7 +131,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-lg sm:text-xl text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto font-medium leading-relaxed"
+            className="text-base sm:text-lg md:text-xl text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto font-medium leading-relaxed px-2 sm:px-0"
           >
             Remove backgrounds in HD, generate passport-size A4 layouts, and download
             print-ready files — all in seconds, no signup needed.
@@ -142,10 +142,10 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.45 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
+            className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-2 sm:pt-4 w-full"
           >
             <Link href="/upload">
-              <Button className="h-14 px-8 text-base font-semibold rounded-full shadow-lg shadow-blue-500/20 hover:shadow-xl hover:-translate-y-0.5 transition-all bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
+              <Button className="w-full sm:w-auto h-12 sm:h-14 px-8 text-base font-semibold rounded-full shadow-lg shadow-blue-500/20 hover:shadow-xl hover:-translate-y-0.5 transition-all bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
                 Start Now — It&apos;s Free
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
@@ -153,7 +153,7 @@ export default function Home() {
             <Link href="#how-it-works">
               <Button
                 variant="outline"
-                className="h-14 px-8 text-base font-semibold rounded-full border-2 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all"
+                className="w-full sm:w-auto h-12 sm:h-14 px-8 text-base font-semibold rounded-full border-2 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all"
               >
                 See How It Works
               </Button>
@@ -182,24 +182,24 @@ export default function Home() {
       {/* ── How It Works Section ─────────────────────────────────────────── */}
       <section
         id="how-it-works"
-        className="py-24 sm:py-32 px-4 sm:px-6 bg-neutral-50/50 dark:bg-neutral-950/50"
+        className="py-16 sm:py-24 md:py-32 px-4 sm:px-6 bg-neutral-50/50 dark:bg-neutral-950/50"
       >
         <div className="max-w-6xl mx-auto">
-          <FadeInView className="text-center mb-16">
-            <span className="text-sm font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
+          <FadeInView className="text-center mb-10 sm:mb-16">
+            <span className="text-xs sm:text-sm font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
               Simple Process
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-neutral-900 dark:text-white tracking-tight mt-3">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-neutral-900 dark:text-white tracking-tight mt-3">
               How It Works
             </h2>
-            <p className="text-lg text-neutral-500 dark:text-neutral-400 font-medium mt-4 max-w-xl mx-auto">
+            <p className="text-sm sm:text-lg text-neutral-500 dark:text-neutral-400 font-medium mt-3 sm:mt-4 max-w-xl mx-auto">
               Three simple steps to get your perfect document photos ready for print.
             </p>
           </FadeInView>
 
           <StaggerContainer
             staggerDelay={0.15}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8"
           >
             {STEPS.map((step, i) => {
               const Icon = step.icon;
@@ -237,23 +237,23 @@ export default function Home() {
       </section>
 
       {/* ── Features Grid Section ────────────────────────────────────────── */}
-      <section id="features" className="py-24 sm:py-32 px-4 sm:px-6">
+      <section id="features" className="py-16 sm:py-24 md:py-32 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
-          <FadeInView className="text-center mb-16">
-            <span className="text-sm font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
+          <FadeInView className="text-center mb-10 sm:mb-16">
+            <span className="text-xs sm:text-sm font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
               Capabilities
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-neutral-900 dark:text-white tracking-tight mt-3">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-neutral-900 dark:text-white tracking-tight mt-3">
               Everything You Need
             </h2>
-            <p className="text-lg text-neutral-500 dark:text-neutral-400 font-medium mt-4 max-w-xl mx-auto">
+            <p className="text-sm sm:text-lg text-neutral-500 dark:text-neutral-400 font-medium mt-3 sm:mt-4 max-w-xl mx-auto">
               From background removal to print-ready passport sheets — all tools in one place.
             </p>
           </FadeInView>
 
           <StaggerContainer
             staggerDelay={0.1}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
           >
             {FEATURES.map((feature) => {
               const Icon = feature.icon;
@@ -278,12 +278,12 @@ export default function Home() {
       </section>
 
       {/* ── Stats / Trust Bar ────────────────────────────────────────────── */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
         <FadeInView>
-          <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 text-center">
             {STATS.map((stat) => (
               <div key={stat.label}>
-                <p className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                <p className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight">
                   {stat.value}
                 </p>
                 <p className="text-sm text-blue-100 font-medium mt-1">
@@ -296,20 +296,20 @@ export default function Home() {
       </section>
 
       {/* ── Final CTA Section ────────────────────────────────────────────── */}
-      <section className="py-24 sm:py-32 px-4 sm:px-6">
+      <section className="py-16 sm:py-24 md:py-32 px-4 sm:px-6">
         <FadeInView>
           <div className="max-w-3xl mx-auto text-center space-y-8">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
               Ready to Create{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
                 Perfect Photos?
               </span>
             </h2>
-            <p className="text-lg text-neutral-500 dark:text-neutral-400 font-medium max-w-lg mx-auto">
+            <p className="text-base sm:text-lg text-neutral-500 dark:text-neutral-400 font-medium max-w-lg mx-auto">
               Upload your photo and get professional results in seconds. Free, private, and instant.
             </p>
             <Link href="/upload">
-              <Button className="h-14 px-10 text-base font-semibold rounded-full shadow-lg shadow-blue-500/20 hover:shadow-xl hover:-translate-y-0.5 transition-all bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
+              <Button className="w-full sm:w-auto h-12 sm:h-14 px-10 text-base font-semibold rounded-full shadow-lg shadow-blue-500/20 hover:shadow-xl hover:-translate-y-0.5 transition-all bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
                 Get Started — Free
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
