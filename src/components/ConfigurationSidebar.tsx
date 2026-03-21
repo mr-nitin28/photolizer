@@ -4,7 +4,7 @@ import { Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // Props interface for all user-configurable layout parameters
-interface Props {
+interface ConfigurationSidebarProps {
   quantity: number;
   setQuantity: (val: number) => void;
   photoWidthMm: number;
@@ -14,110 +14,157 @@ interface Props {
   marginMm: number;
   setMarginMm: (val: number) => void;
   disabled: boolean;
+  /** Maximum photos that physically fit on the sheet (disables + beyond this) */
+  maxFit?: number;
+  /** Computed photo height in mm (derived from width via 35:45 ratio) */
+  photoHeightMm?: number;
 }
 
-export default function ConfigurationSidebar({ 
-  quantity, setQuantity, 
-  photoWidthMm, setPhotoWidthMm, 
-  gapMm, setGapMm,
-  marginMm, setMarginMm,
-  disabled 
-}: Props) {
+// Reusable slider row to keep each control DRY
+function SliderControl({
+  label,
+  hint,
+  value,
+  unit = "mm",
+  min,
+  max,
+  step = 1,
+  disabled,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  value: number;
+  unit?: string;
+  min: number;
+  max: number;
+  step?: number;
+  disabled: boolean;
+  onChange: (val: number) => void;
+}) {
   return (
-    <div className="bg-white dark:bg-neutral-900 p-6 sm:p-8 rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800 shadow-sm space-y-8">
-      
-      {/* Quantity Control */}
-      <div>
-        <div className="mb-4">
-          <h3 className="font-bold text-neutral-900 dark:text-white tracking-tight text-lg">Quantity</h3>
-          <p className="text-xs text-neutral-500 font-medium mt-1">Total photos on physical sheet</p>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold text-neutral-900 dark:text-white">{label}</p>
+          <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">{hint}</p>
         </div>
-        <div className="flex items-center justify-between bg-neutral-50 dark:bg-neutral-950 border border-neutral-200/80 dark:border-neutral-800 rounded-2xl p-1.5 shadow-inner">
-          <Button variant="ghost" size="icon" className="h-12 w-12 shrink-0 text-neutral-600 dark:text-neutral-400 hover:bg-white dark:hover:bg-neutral-800 hover:shadow-sm rounded-xl transition-all" onClick={() => setQuantity(quantity - 1)} disabled={quantity <= 1 || disabled}>
-            <Minus className="w-5 h-5" />
+        <span className="text-xs font-bold text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 px-2.5 py-1 rounded-lg tabular-nums">
+          {value} {unit}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(parseInt(e.target.value))}
+        className="w-full h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full appearance-none cursor-pointer accent-neutral-900 dark:accent-white disabled:opacity-40 disabled:cursor-not-allowed"
+      />
+      <div className="flex justify-between text-[10px] font-medium text-neutral-400 dark:text-neutral-500">
+        <span>{min}{unit}</span>
+        <span>{max}{unit}</span>
+      </div>
+    </div>
+  );
+}
+
+export default function ConfigurationSidebar({
+  quantity,
+  setQuantity,
+  photoWidthMm,
+  setPhotoWidthMm,
+  gapMm,
+  setGapMm,
+  marginMm,
+  setMarginMm,
+  disabled,
+  maxFit,
+  photoHeightMm,
+}: ConfigurationSidebarProps) {
+  // Quantity upper bound: don't allow more than what fits on the sheet
+  const quantityMax = maxFit && maxFit > 0 ? maxFit : 100;
+
+  return (
+    <div className="space-y-6">
+      {/* Quantity stepper */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-neutral-900 dark:text-white">Quantity</p>
+            <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">Photos on sheet</p>
+          </div>
+          {maxFit !== undefined && maxFit > 0 && (
+            <span className="text-[10px] font-medium text-neutral-400 dark:text-neutral-500">
+              max {maxFit}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center justify-between bg-neutral-100 dark:bg-neutral-800 rounded-xl p-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 shrink-0 rounded-lg text-neutral-600 dark:text-neutral-300 hover:bg-white dark:hover:bg-neutral-700 transition-all"
+            onClick={() => setQuantity(quantity - 1)}
+            disabled={quantity <= 1 || disabled}
+          >
+            <Minus className="w-4 h-4" />
           </Button>
-          <span className="text-3xl font-black text-neutral-900 dark:text-white w-16 text-center tracking-tight">{quantity}</span>
-          <Button variant="ghost" size="icon" className="h-12 w-12 shrink-0 text-neutral-600 dark:text-neutral-400 hover:bg-white dark:hover:bg-neutral-800 hover:shadow-sm rounded-xl transition-all" onClick={() => setQuantity(quantity + 1)} disabled={quantity >= 100 || disabled}>
-            <Plus className="w-5 h-5" />
+          <span className="text-2xl font-extrabold text-neutral-900 dark:text-white w-12 text-center tabular-nums">
+            {quantity}
+          </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 shrink-0 rounded-lg text-neutral-600 dark:text-neutral-300 hover:bg-white dark:hover:bg-neutral-700 transition-all"
+            onClick={() => setQuantity(quantity + 1)}
+            disabled={quantity >= quantityMax || disabled}
+          >
+            <Plus className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
-      <div className="h-px w-full bg-neutral-100 dark:bg-neutral-800/80"></div>
+      <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
 
-      {/* Photo Size Control */}
-      <div>
-        <div className="mb-4 flex items-end justify-between">
-          <div>
-            <h3 className="font-bold text-neutral-900 dark:text-white tracking-tight text-lg">Photo Size</h3>
-            <p className="text-xs text-neutral-500 font-medium mt-1">Width (keeps 35:45 ratio)</p>
-          </div>
-          <span className="text-sm font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-md">{photoWidthMm} mm</span>
-        </div>
-        <input 
-          type="range" 
-          min="20" max="100" 
-          value={photoWidthMm} 
-          disabled={disabled}
-          onChange={(e) => setPhotoWidthMm(parseInt(e.target.value))}
-          className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer dark:bg-neutral-700 accent-blue-600"
-        />
-        <div className="flex justify-between text-[10px] font-bold text-neutral-400 mt-2 uppercase tracking-wider">
-          <span>20mm</span>
-          <span>100mm</span>
-        </div>
-      </div>
+      {/* Photo size slider */}
+      <SliderControl
+        label="Photo Width"
+        hint={`Height: ${photoHeightMm ?? Math.round(photoWidthMm * (45 / 35))} mm (35:45 ratio)`}
+        value={photoWidthMm}
+        min={20}
+        max={100}
+        disabled={disabled}
+        onChange={setPhotoWidthMm}
+      />
 
-      <div className="h-px w-full bg-neutral-100 dark:bg-neutral-800/80"></div>
+      <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
 
-      {/* Gap Spacing Control */}
-      <div>
-        <div className="mb-4 flex items-end justify-between">
-          <div>
-            <h3 className="font-bold text-neutral-900 dark:text-white tracking-tight text-lg">Gap Spacing</h3>
-            <p className="text-xs text-neutral-500 font-medium mt-1">Cutter padding between photos</p>
-          </div>
-          <span className="text-sm font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded-md">{gapMm} mm</span>
-        </div>
-        <input 
-          type="range" 
-          min="0" max="25" step="1"
-          value={gapMm} 
-          disabled={disabled}
-          onChange={(e) => setGapMm(parseInt(e.target.value))}
-          className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer dark:bg-neutral-700 accent-indigo-600"
-        />
-        <div className="flex justify-between text-[10px] font-bold text-neutral-400 mt-2 uppercase tracking-wider">
-          <span>0mm</span>
-          <span>25mm</span>
-        </div>
-      </div>
+      {/* Gap spacing slider */}
+      <SliderControl
+        label="Gap Spacing"
+        hint="Cutter padding between photos"
+        value={gapMm}
+        min={0}
+        max={25}
+        disabled={disabled}
+        onChange={setGapMm}
+      />
 
-      <div className="h-px w-full bg-neutral-100 dark:bg-neutral-800/80"></div>
+      <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
 
-      {/* Margin Control */}
-      <div>
-        <div className="mb-4 flex items-end justify-between">
-          <div>
-            <h3 className="font-bold text-neutral-900 dark:text-white tracking-tight text-lg">Margin</h3>
-            <p className="text-xs text-neutral-500 font-medium mt-1">Outer edge spacing on A4 sheet</p>
-          </div>
-          <span className="text-sm font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-md">{marginMm} mm</span>
-        </div>
-        <input 
-          type="range" 
-          min="0" max="30" step="1"
-          value={marginMm} 
-          disabled={disabled}
-          onChange={(e) => setMarginMm(parseInt(e.target.value))}
-          className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer dark:bg-neutral-700 accent-emerald-600"
-        />
-        <div className="flex justify-between text-[10px] font-bold text-neutral-400 mt-2 uppercase tracking-wider">
-          <span>0mm</span>
-          <span>30mm</span>
-        </div>
-      </div>
-
+      {/* Margin slider */}
+      <SliderControl
+        label="Margin"
+        hint="Outer edge spacing on A4"
+        value={marginMm}
+        min={0}
+        max={30}
+        disabled={disabled}
+        onChange={setMarginMm}
+      />
     </div>
   );
 }

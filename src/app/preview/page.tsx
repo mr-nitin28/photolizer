@@ -4,20 +4,37 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Settings, Download, FileText, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Download,
+  FileText,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  Printer,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function PreviewPage() {
   const router = useRouter();
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [error, setError] = useState("");
+  const [pngSuccess, setPngSuccess] = useState(false);
 
   useEffect(() => {
     const stored = sessionStorage.getItem("processedImage");
-    if (stored) {
-      setImageBase64(stored);
-    }
+    if (stored) setImageBase64(stored);
   }, []);
+
+  // Auto-dismiss success indicator after 2s
+  useEffect(() => {
+    if (!pngSuccess) return;
+    const t = setTimeout(() => setPngSuccess(false), 2000);
+    return () => clearTimeout(t);
+  }, [pngSuccess]);
 
   const handleDownloadPNG = () => {
     if (!imageBase64) return;
@@ -27,11 +44,13 @@ export default function PreviewPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setPngSuccess(true);
   };
 
   const handleDownloadPDF = async () => {
     if (!imageBase64) return;
     setDownloadingPDF(true);
+    setError("");
     try {
       const res = await fetch("/api/export-pdf", {
         method: "POST",
@@ -47,100 +66,185 @@ export default function PreviewPage() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (err) {
-      alert("Failed to export PDF");
+    } catch {
+      setError("Failed to export PDF. Please try again.");
     } finally {
       setDownloadingPDF(false);
     }
   };
 
+  // ── Empty state ──
   if (!imageBase64) {
     return (
-      <main className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex flex-col items-center justify-center p-6">
-        <p className="text-neutral-500 mb-6 font-medium text-lg">No processed image found. Please go back and upload.</p>
-        <Link href="/upload"><Button size="lg" className="rounded-xl shadow-sm">Go to Upload</Button></Link>
+      <main className="min-h-screen bg-white dark:bg-neutral-950 flex flex-col items-center justify-center p-6 pt-24">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center space-y-6"
+        >
+          <div className="w-16 h-16 mx-auto bg-neutral-100 dark:bg-neutral-800 rounded-2xl flex items-center justify-center">
+            <AlertCircle className="w-7 h-7 text-neutral-400" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-white">
+              No image found
+            </h2>
+            <p className="text-neutral-500 dark:text-neutral-400 font-medium">
+              Upload a photo first to see your result here.
+            </p>
+          </div>
+          <Link href="/upload">
+            <Button className="h-11 px-6 rounded-xl text-sm font-semibold">
+              Go to Upload
+            </Button>
+          </Link>
+        </motion.div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-neutral-900 pt-16 pb-20 px-4 sm:px-6">
-      <div className="max-w-5xl mx-auto space-y-10">
+    <main className="min-h-screen bg-white dark:bg-neutral-950 pt-24 sm:pt-28 pb-20 px-4 sm:px-6 relative overflow-hidden">
+      {/* Background subtle glow */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-blue-100/25 dark:bg-blue-900/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-20 right-1/4 w-[400px] h-[400px] bg-indigo-100/20 dark:bg-indigo-900/10 rounded-full blur-[100px]" />
+      </div>
+
+      <div className="max-w-5xl mx-auto space-y-8">
+        {/* Header */}
         <div>
-          <Link href="/upload">
-            <Button variant="ghost" className="mb-6 h-10 px-4 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/50 rounded-xl transition-colors">
-              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Upload
-            </Button>
-          </Link>
-          <div className="space-y-3 text-center md:text-left">
-             <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 tracking-tight pb-2 drop-shadow-sm">
-              HD Studio Photo Ready
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Link href="/upload">
+              <Button
+                variant="ghost"
+                className="mb-5 h-10 px-4 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Upload
+              </Button>
+            </Link>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="space-y-3 text-center md:text-left"
+          >
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
+              Your Photo is{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+                Ready
+              </span>
             </h1>
-            <p className="text-lg text-neutral-600 dark:text-neutral-400 font-medium max-w-2xl leading-relaxed">
-              Your image has been perfectly isolated in high definition without any quality loss. Download it seamlessly for digital IDs, or easily format it for physical prints.
+            <p className="text-lg text-neutral-500 dark:text-neutral-400 font-medium max-w-2xl leading-relaxed">
+              Background removed in HD with zero quality loss. Download for digital use or configure a passport print sheet.
             </p>
-          </div>
+          </motion.div>
         </div>
 
-        <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-neutral-200/80 dark:border-neutral-800 rounded-[2.5rem] p-8 sm:p-12 shadow-[0_20px_50px_rgb(0,0,0,0.05)] ring-1 ring-black/5 flex flex-col md:flex-row gap-12 lg:gap-20 items-center justify-center">
-            
-          {/* Left: Image Showcase */}
+        {/* Main card */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 rounded-[2rem] p-6 sm:p-10 shadow-sm flex flex-col md:flex-row gap-10 lg:gap-16 items-center"
+        >
+          {/* Left: Image showcase */}
           <div className="flex-1 flex justify-center w-full max-w-sm relative group">
-            <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 to-indigo-500 opacity-20 blur-2xl rounded-[3rem] transition-all group-hover:opacity-40 group-hover:duration-500 -z-10" />
-            <div className="relative w-full aspect-auto min-h-[400px] max-h-[500px] flex items-center justify-center bg-transparent rounded-3xl overflow-hidden transition-transform hover:scale-[1.02] duration-500 ease-out p-4">
-               {/* Visual checkerboard grid behind transparent bg for styling */}
-               <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0iI2ZmZiI+PC9yZWN0Pgo8cmVjdCB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiNmMGYwZjAiPjwvcmVjdD4KPHJlY3QgeD0iMTAiIHk9IjEwIiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiNmMGYwZjAiPjwvcmVjdD4KPC9zdmc+')] opacity-20 dark:opacity-10 rounded-3xl -z-10 bg-repeat bg-center" />
-               <Image 
-                 src={imageBase64} 
-                 alt="Single processed transparent photo in HD" 
-                 fill 
-                 className="object-contain relative z-10 drop-shadow-[0_15px_35px_rgba(0,0,0,0.25)]" 
-                 unoptimized 
-               />
+            {/* Soft glow behind image */}
+            <div className="absolute -inset-4 bg-gradient-to-br from-blue-400/15 to-indigo-400/15 dark:from-blue-600/10 dark:to-indigo-600/10 blur-2xl rounded-[2rem] -z-10 transition-opacity group-hover:opacity-100 opacity-70" />
+
+            <div className="relative w-full min-h-[360px] max-h-[480px] aspect-auto flex items-center justify-center rounded-2xl overflow-hidden p-4">
+              {/* Transparency checkerboard */}
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0iI2ZmZiI+PC9yZWN0Pgo8cmVjdCB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiNmMGYwZjAiPjwvcmVjdD4KPHJlY3QgeD0iMTAiIHk9IjEwIiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiNmMGYwZjAiPjwvcmVjdD4KPC9zdmc+')] opacity-15 dark:opacity-8 rounded-2xl -z-10 bg-repeat bg-center" />
+
+              <Image
+                src={imageBase64}
+                alt="Processed transparent photo in HD"
+                fill
+                className="object-contain relative z-10 drop-shadow-[0_12px_30px_rgba(0,0,0,0.18)]"
+                unoptimized
+              />
             </div>
           </div>
 
           {/* Right: Actions */}
-          <div className="flex-1 space-y-8 w-full max-w-md">
-            <div className="space-y-4">
-              <Button 
+          <div className="flex-1 space-y-7 w-full max-w-md">
+            {/* Error banner */}
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  className="p-3.5 text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 rounded-xl flex items-center gap-2.5"
+                >
+                  <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                  <p className="font-medium">{error}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Download buttons */}
+            <div className="space-y-3">
+              <Button
                 onClick={handleDownloadPNG}
-                className="w-full h-14 rounded-2xl text-lg font-semibold shadow-lg shadow-blue-500/20 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white transition-all hover:-translate-y-1" 
+                className="w-full h-13 rounded-xl text-base font-semibold shadow-sm bg-neutral-900 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 transition-all hover:-translate-y-0.5"
               >
-                <Download className="w-5 h-5 mr-3" />
-                Download HD PNG
+                {pngSuccess ? (
+                  <CheckCircle2 className="w-5 h-5 mr-2.5 text-emerald-400" />
+                ) : (
+                  <Download className="w-5 h-5 mr-2.5" />
+                )}
+                {pngSuccess ? "Downloaded!" : "Download HD PNG"}
               </Button>
-              <Button 
+
+              <Button
                 onClick={handleDownloadPDF}
                 disabled={downloadingPDF}
                 variant="outline"
-                className="w-full h-14 rounded-2xl text-lg font-semibold shadow-sm border-2 border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all hover:-translate-y-1" 
+                className="w-full h-13 rounded-xl text-base font-semibold border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-900 dark:text-white transition-all hover:-translate-y-0.5"
               >
-                {downloadingPDF ? <Loader2 className="w-5 h-5 mr-3 animate-spin text-neutral-600" /> : <FileText className="w-5 h-5 mr-3 text-neutral-700 dark:text-neutral-300" />}
+                {downloadingPDF ? (
+                  <Loader2 className="w-5 h-5 mr-2.5 animate-spin" />
+                ) : (
+                  <FileText className="w-5 h-5 mr-2.5" />
+                )}
                 Download HD PDF
               </Button>
             </div>
-            
-            <div className="relative flex items-center py-2">
-              <div className="flex-grow border-t border-neutral-200 dark:border-neutral-800"></div>
-              <span className="flex-shrink-0 mx-4 text-neutral-400 text-xs font-bold tracking-widest uppercase">Or Print Configuration</span>
-              <div className="flex-grow border-t border-neutral-200 dark:border-neutral-800"></div>
+
+            {/* Divider */}
+            <div className="flex items-center gap-4">
+              <div className="flex-1 h-px bg-neutral-200 dark:bg-neutral-800" />
+              <span className="text-xs font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">
+                Or
+              </span>
+              <div className="flex-1 h-px bg-neutral-200 dark:bg-neutral-800" />
             </div>
-            
-            <div className="space-y-4">
-              <Button 
-                variant="ghost" 
-                className="w-full h-16 rounded-2xl text-lg font-semibold ring-1 ring-inset ring-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800 transition-all hover:shadow-md" 
-                onClick={() => router.push('/print')}
+
+            {/* Print CTA */}
+            <div className="space-y-3">
+              <Button
+                variant="outline"
+                className="w-full h-14 rounded-xl text-base font-semibold border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-900 dark:text-white transition-all hover:-translate-y-0.5 group"
+                onClick={() => router.push("/print")}
               >
-                <Settings className="w-5 h-5 mr-3 text-indigo-600" />
-                Create Passport Sheet Grid
+                <Printer className="w-5 h-5 mr-2.5 text-neutral-500 dark:text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-200 transition-colors" />
+                Create Passport Print Sheet
+                <ArrowRight className="w-4 h-4 ml-auto text-neutral-400 group-hover:text-neutral-600 dark:group-hover:text-neutral-300 transition-colors" />
               </Button>
-              <p className="text-sm text-center text-neutral-500 font-medium">Auto-generate standard A4 layouts with precision cutting guides</p>
+              <p className="text-xs text-center text-neutral-400 dark:text-neutral-500 font-medium">
+                Generate A4 layouts with cutting guides for professional printing
+              </p>
             </div>
           </div>
-
-        </div>
+        </motion.div>
       </div>
     </main>
   );
