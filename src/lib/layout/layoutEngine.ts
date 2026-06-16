@@ -32,26 +32,24 @@ export async function generateLayout({
   // High-precision physical mm to pixel conversion
   const mmToPx = (mm: number) => Math.round((mm / 25.4) * dpi);
 
+  const a4WidthMm = 210;
+  const a4HeightMm = 297;
+
   // Print-grade A4 size (210mm x 297mm)
-  const a4WidthPx = mmToPx(210);
-  const a4HeightPx = mmToPx(297);
+  const a4WidthPx = mmToPx(a4WidthMm);
+  const a4HeightPx = mmToPx(a4HeightMm);
 
-  const photoWidth = mmToPx(photoWidthMm);
-  const photoHeight = mmToPx(photoHeightMm);
-  const gap = mmToPx(gapMm);
-  const margin = mmToPx(marginMm);
+  // Physical grid boundaries in mm to match client calculations exactly and avoid rounding drift
+  const printableWMm = a4WidthMm - 2 * marginMm;
+  const printableHMm = a4HeightMm - 2 * marginMm;
 
-  // Guard: if a single photo is larger than printable area
-  const printableW = a4WidthPx - 2 * margin;
-  const printableH = a4HeightPx - 2 * margin;
-
-  if (photoWidth <= 0 || photoHeight <= 0 || printableW <= 0 || printableH <= 0) {
+  if (photoWidthMm <= 0 || photoHeightMm <= 0 || printableWMm <= 0 || printableHMm <= 0) {
     throw new Error("Invalid dimensions: photo or margin too large for A4 sheet");
   }
 
-  // Maximum items fitting horizontally and vertically
-  const totalCols = Math.max(1, Math.floor((printableW + gap) / (photoWidth + gap)));
-  const totalRows = Math.max(1, Math.floor((printableH + gap) / (photoHeight + gap)));
+  // Maximum items fitting horizontally and vertically computed in mm
+  const totalCols = Math.max(1, Math.floor((printableWMm + gapMm) / (photoWidthMm + gapMm)));
+  const totalRows = Math.max(1, Math.floor((printableHMm + gapMm) / (photoHeightMm + gapMm)));
   const maxFit = totalCols * totalRows;
 
   // Clamp requested quantity to what actually fits
@@ -67,24 +65,33 @@ export async function generateLayout({
     }
   });
 
-  // Overlay options for compositing all photos + cutting guides
-  const composites: { input: Buffer; top: number; left: number }[] = [];
+  // Target sizes in pixels for scaling the photo
+  const photoWidthPx = mmToPx(photoWidthMm);
+  const photoHeightPx = mmToPx(photoHeightMm);
 
   // Resize source image once to exact target pixel dimensions
   const resizedImage = images.length > 0
-    ? await sharp(images[0]).resize(photoWidth, photoHeight, { fit: "contain", background: { r: 255, g: 255, b: 255, alpha: 1 } }).png().toBuffer()
+    ? await sharp(images[0]).resize(photoWidthPx, photoHeightPx, { fit: "contain", background: { r: 255, g: 255, b: 255, alpha: 1 } }).png().toBuffer()
     : Buffer.alloc(0);
+
+  // Overlay options for compositing all photos + cutting guides
+  const composites: { input: Buffer; top: number; left: number }[] = [];
 
   for (let i = 0; i < actualCount; i++) {
     const col = i % totalCols;
     const row = Math.floor(i / totalCols);
 
-    const left = margin + col * (photoWidth + gap);
-    const top = margin + row * (photoHeight + gap);
+    // Compute exact physical coordinates in mm first
+    const leftMm = marginMm + col * (photoWidthMm + gapMm);
+    const topMm = marginMm + row * (photoHeightMm + gapMm);
 
-    // Dashed cutting guide SVG
+    // Convert individual placement coordinates to pixel offsets
+    const left = mmToPx(leftMm);
+    const top = mmToPx(topMm);
+
+    // Dashed cutting guide SVG - offset rect by 1px to prevent 2px stroke clipping
     const borderSvg = Buffer.from(
-      `<svg width="${photoWidth}" height="${photoHeight}"><rect x="0" y="0" width="${photoWidth}" height="${photoHeight}" fill="none" stroke="#cccccc" stroke-width="2" stroke-dasharray="12,6" /></svg>`
+      `<svg width="${photoWidthPx}" height="${photoHeightPx}"><rect x="1" y="1" width="${photoWidthPx - 2}" height="${photoHeightPx - 2}" fill="none" stroke="#cccccc" stroke-width="2" stroke-dasharray="12,6" /></svg>`
     );
 
     composites.push({ input: resizedImage, top, left });

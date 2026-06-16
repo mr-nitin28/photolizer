@@ -6,7 +6,10 @@ export async function removeBackground(imageBuffer: Buffer, mimetype: string): P
 
   const formData = new FormData();
   
-  const blob = new Blob([new Uint8Array(imageBuffer)], { type: mimetype });
+  const blob = new Blob(
+    [new Uint8Array(imageBuffer.buffer as ArrayBuffer, imageBuffer.byteOffset, imageBuffer.byteLength)],
+    { type: mimetype }
+  );
   formData.append("image_file", blob, "image.jpg");
   formData.append("size", "auto");
 

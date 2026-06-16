@@ -10,6 +10,9 @@ import {
   FileText,
   Loader2,
   RotateCcw,
+  CheckCircle2,
+  Maximize,
+  Grid3X3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ConfigurationSidebar from "@/components/ConfigurationSidebar";
@@ -117,27 +120,32 @@ export default function PrintSheetPage() {
 
   const handleExportPDF = async () => {
     setDownloading("pdf");
-    const output = await fetchPreciseLayout();
-    if (!output) {
-      setDownloading("none");
-      return;
-    }
+    setError("");
     try {
       const res = await fetch("/api/export-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ layoutBase64: output }),
+        body: JSON.stringify({
+          imageBase64,
+          quantity,
+          photoWidthMm,
+          photoHeightMm,
+          gapMm,
+          marginMm,
+          isA4: true,
+        }),
       });
       const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error);
+      if (!res.ok || !data.success) throw new Error(data.error || "Failed to convert layout into PDF.");
       const a = document.createElement("a");
       a.href = data.pdfBase64;
       a.download = "PhotoForge_A4_Layout.pdf";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-    } catch {
-      setError("Failed to convert layout into PDF.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to convert layout into PDF.";
+      setError(msg);
     } finally {
       setDownloading("none");
     }
@@ -233,13 +241,13 @@ export default function PrintSheetPage() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="grid grid-cols-1 lg:grid-cols-[280px_1fr] xl:grid-cols-[320px_1fr] gap-4 sm:gap-6"
+          className="grid grid-cols-1 lg:grid-cols-[290px_1fr] xl:grid-cols-[330px_1fr] gap-4 sm:gap-6"
         >
           {/* ── Left Panel: Sticky scrollable configuration controls ── */}
           <div className="lg:sticky lg:top-20 h-fit">
-            <div className="bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 rounded-xl sm:rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border border-neutral-200/50 dark:border-neutral-800/50 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.02)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.15)] overflow-hidden">
               {/* Scrollable controls area */}
-              <div className="max-h-[35vh] sm:max-h-[45vh] lg:max-h-[calc(100vh-120px)] overflow-y-auto overscroll-contain p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-6 scrollbar-thin">
+              <div className="max-h-[40vh] sm:max-h-[50vh] lg:max-h-[calc(100vh-120px)] overflow-y-auto overscroll-contain p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-6 scrollbar-thin">
                 <ConfigurationSidebar
                   quantity={quantity}
                   setQuantity={setQuantity}
@@ -254,26 +262,28 @@ export default function PrintSheetPage() {
                   photoHeightMm={photoHeightMm}
                 />
 
-                <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
+                <div className="h-px bg-neutral-100 dark:bg-neutral-800/60" />
 
                 {/* Reset */}
-                <Button
-                  variant="outline"
-                  className="w-full h-9 rounded-lg text-sm font-medium border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-                  onClick={handleReset}
-                  disabled={isGenerating}
-                >
-                  <RotateCcw className="w-3.5 h-3.5 mr-2" />
-                  Reset Defaults
-                </Button>
+                <motion.div whileTap={{ scale: 0.97 }}>
+                  <Button
+                    variant="outline"
+                    className="w-full h-10 rounded-xl text-xs font-semibold border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+                    onClick={handleReset}
+                    disabled={isGenerating}
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 mr-2" />
+                    Reset Defaults
+                  </Button>
+                </motion.div>
               </div>
             </div>
           </div>
 
           {/* ── Right Column: Preview Canvas + Sheet Info + Exports ── */}
           <div className="space-y-4 sm:space-y-6">
-            {/* Preview canvas */}
-            <div className="bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 shadow-sm flex min-h-[50vh] sm:min-h-[60vh] lg:min-h-[70vh]">
+            {/* Preview canvas - glassmorphic frame */}
+            <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border border-neutral-200/50 dark:border-neutral-800/50 rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 shadow-[0_8px_30px_rgba(0,0,0,0.02)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.15)] flex min-h-[50vh] sm:min-h-[60vh] lg:min-h-[70vh]">
               <PreviewCanvas
                 imageBase64={imageBase64}
                 quantity={quantity}
@@ -285,37 +295,48 @@ export default function PrintSheetPage() {
               />
             </div>
 
-            {/* Sheet Info + Export Actions — below canvas for better visibility */}
-            <div className="bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-sm">
+            {/* Sheet Info + Export Actions — glassmorphic control bar */}
+            <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border border-neutral-200/50 dark:border-neutral-800/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-[0_8px_30px_rgba(0,0,0,0.02)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.15)]">
               <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6">
                 {/* Sheet info stats */}
                 <div className="flex-1 space-y-3">
-                  <p className="text-xs font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">
-                    Sheet Info
+                  <p className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">
+                    Layout Statistics
                   </p>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-neutral-50 dark:bg-neutral-800 rounded-xl p-2.5 sm:p-3 text-center">
-                      <p className="text-lg font-extrabold text-neutral-900 dark:text-white tabular-nums">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-neutral-50/50 dark:bg-neutral-800/10 border border-neutral-100 dark:border-neutral-800/30 rounded-xl p-3 text-center flex flex-col items-center justify-center">
+                      <div className="p-1 rounded-lg bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400 mb-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      </div>
+                      <p className="text-base font-extrabold text-neutral-900 dark:text-white tabular-nums">
                         {layoutInfo.actualCount}
                       </p>
                       <p className="text-[10px] text-neutral-500 font-medium mt-0.5">
                         Placed
                       </p>
                     </div>
-                    <div className="bg-neutral-50 dark:bg-neutral-800 rounded-xl p-2.5 sm:p-3 text-center">
-                      <p className="text-lg font-extrabold text-neutral-900 dark:text-white tabular-nums">
+                    
+                    <div className="bg-neutral-50/50 dark:bg-neutral-800/10 border border-neutral-100 dark:border-neutral-800/30 rounded-xl p-3 text-center flex flex-col items-center justify-center">
+                      <div className="p-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 mb-1">
+                        <Maximize className="w-3.5 h-3.5" />
+                      </div>
+                      <p className="text-base font-extrabold text-neutral-900 dark:text-white tabular-nums">
                         {layoutInfo.maxFit}
                       </p>
                       <p className="text-[10px] text-neutral-500 font-medium mt-0.5">
                         Max Fit
                       </p>
                     </div>
-                    <div className="bg-neutral-50 dark:bg-neutral-800 rounded-xl p-2.5 sm:p-3 text-center">
-                      <p className="text-lg font-extrabold text-neutral-900 dark:text-white tabular-nums">
+                    
+                    <div className="bg-neutral-50/50 dark:bg-neutral-800/10 border border-neutral-100 dark:border-neutral-800/30 rounded-xl p-3 text-center flex flex-col items-center justify-center">
+                      <div className="p-1 rounded-lg bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 mb-1">
+                        <Grid3X3 className="w-3.5 h-3.5" />
+                      </div>
+                      <p className="text-base font-extrabold text-neutral-900 dark:text-white tabular-nums">
                         {layoutInfo.cols}×{layoutInfo.rows}
                       </p>
                       <p className="text-[10px] text-neutral-500 font-medium mt-0.5">
-                        Grid
+                        Grid Layout
                       </p>
                     </div>
                   </div>
@@ -332,36 +353,41 @@ export default function PrintSheetPage() {
                         exit={{ opacity: 0 }}
                         className="absolute inset-0 z-10 bg-white/70 dark:bg-neutral-900/70 backdrop-blur-sm rounded-xl flex items-center justify-center"
                       >
-                        <Loader2 className="w-5 h-5 text-neutral-900 dark:text-white animate-spin" />
+                        <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />
                       </motion.div>
                     )}
                   </AnimatePresence>
 
-                  <Button
-                    className="h-11 px-6 rounded-xl text-sm font-semibold shadow-sm bg-neutral-900 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 transition-all hover:-translate-y-0.5"
-                    onClick={handleExportPDF}
-                    disabled={exportDisabled}
-                  >
-                    {downloading === "pdf" ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <FileText className="w-4 h-4 mr-2" />
-                    )}
-                    Download PDF
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="h-11 px-6 rounded-xl text-sm font-semibold border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-900 dark:text-white transition-all hover:-translate-y-0.5"
-                    onClick={handleExportPNG}
-                    disabled={exportDisabled}
-                  >
-                    {downloading === "png" ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <FileImage className="w-4 h-4 mr-2" />
-                    )}
-                    Download PNG
-                  </Button>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+                    <Button
+                      className="w-full h-11 px-6 rounded-xl text-sm font-semibold shadow-sm bg-indigo-600 hover:bg-indigo-500 text-white dark:bg-white dark:hover:bg-neutral-100 dark:text-neutral-900 transition-colors"
+                      onClick={handleExportPDF}
+                      disabled={exportDisabled}
+                    >
+                      {downloading === "pdf" ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <FileText className="w-4 h-4 mr-2" />
+                      )}
+                      Download PDF
+                    </Button>
+                  </motion.div>
+                  
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+                    <Button
+                      variant="outline"
+                      className="w-full h-11 px-6 rounded-xl text-sm font-semibold border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-900 dark:text-white transition-colors"
+                      onClick={handleExportPNG}
+                      disabled={exportDisabled}
+                    >
+                      {downloading === "png" ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <FileImage className="w-4 h-4 mr-2" />
+                      )}
+                      Download PNG
+                    </Button>
+                  </motion.div>
                 </div>
               </div>
             </div>
