@@ -16,6 +16,9 @@ export async function POST(req: Request) {
       photoHeightMm,
       gapMm,
       marginMm,
+      paperWidthMm,
+      paperHeightMm,
+      backgroundColorHex,
     } = body;
     
     let layoutBuffer: Buffer;
@@ -33,17 +36,24 @@ export async function POST(req: Request) {
         photoHeightMm: Number(photoHeightMm),
         gapMm: Number(gapMm),
         marginMm: Number(marginMm),
+        paperWidthMm: paperWidthMm ? Number(paperWidthMm) : 210,
+        paperHeightMm: paperHeightMm ? Number(paperHeightMm) : 297,
+        backgroundColorHex: backgroundColorHex ? String(backgroundColorHex) : "#ffffff",
       });
       layoutBuffer = result.buffer;
     } else if (layoutBase64) {
-      // Direct layout base64 conversion (legacy)
+      // Direct layout base64 conversion
       const base64Data = layoutBase64.replace(/^data:image\/\w+;base64,/, "");
       layoutBuffer = Buffer.from(base64Data, "base64");
     } else {
       return NextResponse.json({ error: "No imageBase64 or layoutBase64 provided" }, { status: 400 });
     }
 
-    const pdfBuffer = await createPdf(layoutBuffer, isA4);
+    const pdfBuffer = await createPdf(layoutBuffer, {
+      paperWidthMm: paperWidthMm ? Number(paperWidthMm) : (isA4 ? 210 : undefined),
+      paperHeightMm: paperHeightMm ? Number(paperHeightMm) : (isA4 ? 297 : undefined),
+      isA4,
+    });
     const pdfBase64 = `data:application/pdf;base64,${pdfBuffer.toString("base64")}`;
 
     return NextResponse.json({ success: true, pdfBase64 });

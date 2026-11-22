@@ -10,6 +10,10 @@ interface PreviewCanvasProps {
   photoHeightMm: number;
   gapMm: number;
   marginMm: number;
+  paperWidthMm?: number;
+  paperHeightMm?: number;
+  paperName?: string;
+  backgroundColorHex?: string;
   onLayoutInfoChange?: (info: {
     maxFit: number;
     actualCount: number;
@@ -18,11 +22,6 @@ interface PreviewCanvasProps {
   }) => void;
 }
 
-// A4 physical dimensions in mm
-const A4_W = 210;
-const A4_H = 297;
-const A4_RATIO = A4_H / A4_W; // ≈ 1.414
-
 export default function PreviewCanvas({
   imageBase64,
   quantity,
@@ -30,14 +29,22 @@ export default function PreviewCanvas({
   photoHeightMm,
   gapMm,
   marginMm,
+  paperWidthMm = 210,
+  paperHeightMm = 297,
+  paperName = "A4",
+  backgroundColorHex = "#ffffff",
   onLayoutInfoChange,
 }: PreviewCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [paperSize, setPaperSize] = useState({ w: 0, h: 0 });
 
+  const paperW = paperWidthMm || 210;
+  const paperH = paperHeightMm || 297;
+  const paperRatio = paperH / paperW;
+
   // Calculate grid based on physical bounds
-  const printableW = A4_W - 2 * marginMm;
-  const printableH = A4_H - 2 * marginMm;
+  const printableW = paperW - 2 * marginMm;
+  const printableH = paperH - 2 * marginMm;
 
   const cols = Math.max(1, Math.floor((printableW + gapMm) / (photoWidthMm + gapMm)));
   const rows = Math.max(1, Math.floor((printableH + gapMm) / (photoHeightMm + gapMm)));
@@ -50,8 +57,7 @@ export default function PreviewCanvas({
     onLayoutInfoChange?.({ maxFit, actualCount, cols, rows });
   }, [maxFit, actualCount, cols, rows, onLayoutInfoChange]);
 
-  // ── Smart scaling: measure the container and compute the largest A4
-  // rectangle that fits entirely inside it, deducting container padding. ──
+  // Smart scaling: compute largest rectangle fitting container while preserving paper ratio
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -61,18 +67,16 @@ export default function PreviewCanvas({
       const paddingX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
       const paddingY = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
 
-      // Leave 56px room for the CAD rule guides around the sheet
+      // Leave 56px margin for the CAD rule guides around the sheet
       const cw = el.clientWidth - paddingX - 56;
       const ch = el.clientHeight - paddingY - 56;
 
-      // Fit by width first, then check if the resulting height fits
       let w = cw;
-      let h = w * A4_RATIO;
+      let h = w * paperRatio;
 
       if (h > ch) {
-        // Height constrained — fit by height instead
         h = ch;
-        w = h / A4_RATIO;
+        w = h / paperRatio;
       }
 
       setPaperSize({ w: Math.floor(w), h: Math.floor(h) });
@@ -83,12 +87,12 @@ export default function PreviewCanvas({
     const ro = new ResizeObserver(computeSize);
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [paperRatio]);
 
   if (!imageBase64) return null;
 
-  // CSS % padding is always relative to element WIDTH.
-  const marginPct = (marginMm / A4_W) * 100;
+  // CSS % padding is relative to element width
+  const marginPct = (marginMm / paperW) * 100;
 
   // Gap percentages relative to printable area
   const colGapPct = printableW > 0 ? (gapMm / printableW) * 100 : 0;
@@ -97,12 +101,14 @@ export default function PreviewCanvas({
   // Each photo width as % of printable area
   const photoWidthPct = printableW > 0 ? (photoWidthMm / printableW) * 100 : 0;
 
+  const isTransparent = backgroundColorHex.toLowerCase() === "transparent";
+
   return (
     <div
       ref={containerRef}
       className="relative w-full flex-1 flex flex-col items-center justify-center p-2 sm:p-4 md:p-6 rounded-xl bg-neutral-50 dark:bg-neutral-950/50 bg-[radial-gradient(#e5e7eb_1.5px,transparent_1.5px)] dark:bg-[radial-gradient(#262626_1.5px,transparent_1.5px)] [background-size:20px_20px] border border-neutral-100 dark:border-neutral-900 overflow-hidden"
     >
-      {/* A4 Paper Wrapper — contains both the sheet and CAD layout guides */}
+      {/* Paper Wrapper — contains both sheet and CAD layout guides */}
       {paperSize.w > 0 && (
         <div
           className="absolute flex items-center justify-center transition-all duration-300"
@@ -111,8 +117,9 @@ export default function PreviewCanvas({
             height: `${paperSize.h}px`,
           }}
         >
-          {/* Physical A4 Paper */}
+          {/* Physical Sheet Paper */}
           <div
+            id="printable-sheet"
             className="absolute inset-0 bg-white dark:bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1),0_4px_12px_rgba(0,0,0,0.05)] ring-1 ring-neutral-200/80 dark:ring-neutral-300/40"
             style={{
               padding: `${marginPct}%`,
@@ -132,15 +139,21 @@ export default function PreviewCanvas({
               {Array.from({ length: actualCount }).map((_, i) => (
                 <div
                   key={i}
-                  className="relative border border-dashed border-neutral-200/80 dark:border-neutral-300/90 transition-all duration-200"
+                  className="relative border border-dashed border-neutral-300 dark:border-neutral-400 transition-all duration-200 overflow-hidden"
                   style={{
                     width: "100%",
                     aspectRatio: `${photoWidthMm}/${photoHeightMm}`,
+                    backgroundColor: isTransparent ? "transparent" : backgroundColorHex,
                   }}
                 >
+                  {/* Subtle checkerboard if transparent */}
+                  {isTransparent && (
+                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPjxyZWN0IHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiNmZmYiPjwvcmVjdD48cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZjBmMGYwIj48L3JlY3Q+PHJlY3QgeD0iNCIgeT0iNCIgd2lkdGg9IjQiIGhlaWdodD0iNCIgZmlsbD0iI2YwZjBmMCI+PC9yZWN0Pjwvc3ZnPg==')] opacity-40 -z-10" />
+                  )}
+
                   <Image
                     src={imageBase64}
-                    alt={`Photo ${i + 1}`}
+                    alt={`Passport photo ${i + 1}`}
                     fill
                     className="object-contain p-px"
                     unoptimized
@@ -155,7 +168,7 @@ export default function PreviewCanvas({
             <div className="h-2 w-px bg-neutral-300 dark:bg-neutral-800" />
             <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800 mx-2 relative flex items-center justify-center">
               <span className="bg-neutral-50 dark:bg-neutral-950 px-2 text-neutral-500 dark:text-neutral-400 tabular-nums">
-                210 mm (A4 Width)
+                {paperW} mm ({paperName} Width)
               </span>
             </div>
             <div className="h-2 w-px bg-neutral-300 dark:bg-neutral-800" />
@@ -166,7 +179,7 @@ export default function PreviewCanvas({
             <div className="w-2 h-px bg-neutral-300 dark:bg-neutral-800" />
             <div className="w-px flex-1 bg-neutral-200 dark:bg-neutral-800 my-2 relative flex items-center justify-center">
               <span className="bg-neutral-50 dark:bg-neutral-950 py-1 px-1.5 absolute whitespace-nowrap rotate-90 origin-center text-neutral-500 dark:text-neutral-400 tabular-nums">
-                297 mm (A4 Height)
+                {paperH} mm ({paperName} Height)
               </span>
             </div>
             <div className="w-2 h-px bg-neutral-300 dark:bg-neutral-800" />

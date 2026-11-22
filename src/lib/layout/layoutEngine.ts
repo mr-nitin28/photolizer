@@ -1,11 +1,14 @@
 // Server-side layout generation parameters
-interface GenerateLayoutProps {
+export interface GenerateLayoutProps {
   images: Buffer[];
   quantity: number;
   photoWidthMm: number;
   photoHeightMm: number;
   gapMm: number;
   marginMm: number;
+  paperWidthMm?: number;
+  paperHeightMm?: number;
+  backgroundColorHex?: string;
 }
 
 // Result metadata returned alongside the buffer
@@ -15,6 +18,8 @@ export interface LayoutResult {
   actualCount: number; // Photos actually placed
   cols: number;
   rows: number;
+  paperWidthMm: number;
+  paperHeightMm: number;
 }
 
 export async function generateLayout({ 
@@ -23,7 +28,10 @@ export async function generateLayout({
   photoWidthMm,
   photoHeightMm,
   gapMm,
-  marginMm
+  marginMm,
+  paperWidthMm = 210,
+  paperHeightMm = 297,
+  backgroundColorHex = "#ffffff",
 }: GenerateLayoutProps): Promise<LayoutResult> {
   // Dynamic import — prevents Turbopack from bundling sharp's native binary
   const sharp = (await import("sharp")).default;
@@ -32,19 +40,16 @@ export async function generateLayout({
   // High-precision physical mm to pixel conversion
   const mmToPx = (mm: number) => Math.round((mm / 25.4) * dpi);
 
-  const a4WidthMm = 210;
-  const a4HeightMm = 297;
+  // Print-grade sheet dimensions
+  const sheetWidthPx = mmToPx(paperWidthMm);
+  const sheetHeightPx = mmToPx(paperHeightMm);
 
-  // Print-grade A4 size (210mm x 297mm)
-  const a4WidthPx = mmToPx(a4WidthMm);
-  const a4HeightPx = mmToPx(a4HeightMm);
-
-  // Physical grid boundaries in mm to match client calculations exactly and avoid rounding drift
-  const printableWMm = a4WidthMm - 2 * marginMm;
-  const printableHMm = a4HeightMm - 2 * marginMm;
+  // Physical grid boundaries in mm
+  const printableWMm = paperWidthMm - 2 * marginMm;
+  const printableHMm = paperHeightMm - 2 * marginMm;
 
   if (photoWidthMm <= 0 || photoHeightMm <= 0 || printableWMm <= 0 || printableHMm <= 0) {
-    throw new Error("Invalid dimensions: photo or margin too large for A4 sheet");
+    throw new Error("Invalid dimensions: photo or margin too large for selected paper sheet");
   }
 
   // Maximum items fitting horizontally and vertically computed in mm
@@ -55,24 +60,63 @@ export async function generateLayout({
   // Clamp requested quantity to what actually fits
   const actualCount = Math.min(quantity, maxFit);
 
-  // Create blank white A4 canvas
-  const canvas = sharp({
+  // Parse background color for passport photo backing
+  let bgR = 255, bgG = 255, bgB = 255, bgAlpha = 1;
+  const isTransparent = backgroundColorHex.toLowerCase() === "transparent";
+  if (!isTransparent) {
+    const cleanHex = backgroundColorHex.replace("#", "");
+    if (cleanHex.length === 6) {
+      bgR = parseInt(cleanHex.substring(0, 2), 16);
+      bgG = parseInt(cleanHex.substring(2, 4), 16);
+      bgB = parseInt(cleanHex.substring(4, 6), 16);
+    }
+  } else {
+    bgAlpha = 0;
+  }
+
+  // Create blank white sheet canvas
+  const sheetCanvas = sharp({
     create: {
-      width: a4WidthPx,
-      height: a4HeightPx,
+      width: sheetWidthPx,
+      height: sheetHeightPx,
       channels: 4,
       background: { r: 255, g: 255, b: 255, alpha: 1 }
     }
   });
 
-  // Target sizes in pixels for scaling the photo
+  // Target sizes in pixels for scaling the individual photo
   const photoWidthPx = mmToPx(photoWidthMm);
   const photoHeightPx = mmToPx(photoHeightMm);
 
-  // Resize source image once to exact target pixel dimensions
-  const resizedImage = images.length > 0
-    ? await sharp(images[0]).resize(photoWidthPx, photoHeightPx, { fit: "contain", background: { r: 255, g: 255, b: 255, alpha: 1 } }).png().toBuffer()
-    : Buffer.alloc(0);
+  let singlePhotoBuffer: Buffer;
+  if (images.length > 0 && images[0].length > 0) {
+    // 1. Create a passport background card
+    const cardBase = sharp({
+      create: {
+        width: photoWidthPx,
+        height: photoHeightPx,
+        channels: 4,
+        background: { r: bgR, g: bgG, b: bgB, alpha: bgAlpha }
+      }
+    });
+
+    // 2. Resize source photo to fit within passport card bounds
+    const resizedCutout = await sharp(images[0])
+      .resize(photoWidthPx, photoHeightPx, { 
+        fit: "contain",
+        background: { r: 0, g: 0, b: 0, alpha: 0 }
+      })
+      .png()
+      .toBuffer();
+
+    // 3. Composite cutout onto the background card
+    singlePhotoBuffer = await cardBase
+      .composite([{ input: resizedCutout, top: 0, left: 0 }])
+      .png()
+      .toBuffer();
+  } else {
+    singlePhotoBuffer = Buffer.alloc(0);
+  }
 
   // Overlay options for compositing all photos + cutting guides
   const composites: { input: Buffer; top: number; left: number }[] = [];
@@ -81,7 +125,7 @@ export async function generateLayout({
     const col = i % totalCols;
     const row = Math.floor(i / totalCols);
 
-    // Compute exact physical coordinates in mm first
+    // Compute exact physical coordinates in mm
     const leftMm = marginMm + col * (photoWidthMm + gapMm);
     const topMm = marginMm + row * (photoHeightMm + gapMm);
 
@@ -89,17 +133,27 @@ export async function generateLayout({
     const left = mmToPx(leftMm);
     const top = mmToPx(topMm);
 
-    // Dashed cutting guide SVG - offset rect by 1px to prevent 2px stroke clipping
+    // Dashed cutting guide SVG
     const borderSvg = Buffer.from(
       `<svg width="${photoWidthPx}" height="${photoHeightPx}"><rect x="1" y="1" width="${photoWidthPx - 2}" height="${photoHeightPx - 2}" fill="none" stroke="#cccccc" stroke-width="2" stroke-dasharray="12,6" /></svg>`
     );
 
-    composites.push({ input: resizedImage, top, left });
+    if (singlePhotoBuffer.length > 0) {
+      composites.push({ input: singlePhotoBuffer, top, left });
+    }
     composites.push({ input: borderSvg, top, left });
   }
 
-  // compressionLevel 0 = fastest/largest = maximum quality PNG
-  const buffer = await canvas.composite(composites).png({ compressionLevel: 0 }).toBuffer();
+  // Maximum quality output PNG
+  const buffer = await sheetCanvas.composite(composites).png({ compressionLevel: 0 }).toBuffer();
 
-  return { buffer, maxFit, actualCount, cols: totalCols, rows: totalRows };
+  return { 
+    buffer, 
+    maxFit, 
+    actualCount, 
+    cols: totalCols, 
+    rows: totalRows,
+    paperWidthMm,
+    paperHeightMm
+  };
 }

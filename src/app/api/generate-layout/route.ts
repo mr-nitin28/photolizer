@@ -10,7 +10,10 @@ export async function POST(req: Request) {
       photoWidthMm = 35,
       photoHeightMm = 45,
       gapMm = 4,
-      marginMm = 5 
+      marginMm = 5,
+      paperWidthMm = 210,
+      paperHeightMm = 297,
+      backgroundColorHex = "#ffffff",
     } = body;
     
     if (!imageBase64) {
@@ -21,7 +24,7 @@ export async function POST(req: Request) {
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
     const imageBuffer = Buffer.from(base64Data, "base64");
 
-    // Generate layout — engine handles resizing internally now
+    // Generate layout — engine handles sizing, paper size, and background color
     const result = await generateLayout({
       images: [imageBuffer],
       quantity: Number(quantity),
@@ -29,6 +32,9 @@ export async function POST(req: Request) {
       photoHeightMm: Number(photoHeightMm),
       gapMm: Number(gapMm),
       marginMm: Number(marginMm),
+      paperWidthMm: Number(paperWidthMm),
+      paperHeightMm: Number(paperHeightMm),
+      backgroundColorHex: String(backgroundColorHex),
     });
 
     const outputBase64 = `data:image/png;base64,${result.buffer.toString("base64")}`;

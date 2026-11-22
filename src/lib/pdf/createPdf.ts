@@ -1,37 +1,54 @@
 import { PDFDocument } from "pdf-lib";
 
-export async function createPdf(layoutImageBuffer: Buffer, isA4: boolean = true): Promise<Buffer> {
+interface CreatePdfOptions {
+  paperWidthMm?: number;
+  paperHeightMm?: number;
+  isA4?: boolean;
+}
+
+export async function createPdf(
+  layoutImageBuffer: Buffer, 
+  options: CreatePdfOptions | boolean = true
+): Promise<Buffer> {
   const pdfDoc = await PDFDocument.create();
   
   // Need to detect if it's png or jpg
   let image;
   try {
     image = await pdfDoc.embedPng(layoutImageBuffer);
-  } catch (e) {
+  } catch {
     image = await pdfDoc.embedJpg(layoutImageBuffer);
   }
 
-  const { width, height } = image.scale(1);
-  
-  if (isA4) {
-    // A4 size in points -> 595.28 x 841.89
-    const page = pdfDoc.addPage([595.28, 841.89]);
-    page.drawImage(image, {
-      x: 0,
-      y: 0,
-      width: 595.28,
-      height: 841.89,
-    });
+  // 1 mm = 72 / 25.4 points ≈ 2.83464567 points
+  const mmToPt = (mm: number) => mm * (72 / 25.4);
+
+  let pageWidthPt: number;
+  let pageHeightPt: number;
+
+  if (typeof options === "boolean") {
+    if (options) {
+      // Default A4 in points
+      pageWidthPt = 595.28;
+      pageHeightPt = 841.89;
+    } else {
+      const { width, height } = image.scale(1);
+      pageWidthPt = width;
+      pageHeightPt = height;
+    }
   } else {
-    // Custom size matching the embedded image perfectly
-    const page = pdfDoc.addPage([width, height]);
-    page.drawImage(image, {
-      x: 0,
-      y: 0,
-      width: width,
-      height: height,
-    });
+    const { paperWidthMm = 210, paperHeightMm = 297 } = options;
+    pageWidthPt = mmToPt(paperWidthMm);
+    pageHeightPt = mmToPt(paperHeightMm);
   }
+
+  const page = pdfDoc.addPage([pageWidthPt, pageHeightPt]);
+  page.drawImage(image, {
+    x: 0,
+    y: 0,
+    width: pageWidthPt,
+    height: pageHeightPt,
+  });
   
   const pdfBytes = await pdfDoc.save();
   return Buffer.from(pdfBytes);

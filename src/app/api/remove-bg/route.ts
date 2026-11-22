@@ -21,8 +21,9 @@ export async function POST(req: Request) {
     const base64Image = `data:image/png;base64,${processedBuffer.toString("base64")}`;
     
     return NextResponse.json({ success: true, image: base64Image });
-  } catch (error: any) {
-    console.error("Remove BG error:", error);
-    return NextResponse.json({ success: false, error: error.message || "Something went wrong" }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Something went wrong";
+    console.error("Remove BG error:", message);
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
